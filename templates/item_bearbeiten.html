@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Item bearbeiten{% endblock %}
+{% block content %}
+    <h1>Item bearbeiten</h1>
+    <form method="post">
+        <label for="item_name">Item-Name:</label>
+        <input type="text" id="item_name" name="item_name" value="{{ item.item_name }}" required>
+
+        <label for="raid_instanz">Raid-Instanz:</label>
+        <input list="raid_namen" id="raid_instanz" name="raid_instanz" value="{{ item.raid_instanz }}" required>
+        <datalist id="raid_namen">
+            {% for raid in raid_instanzen %}
+                <option value="{{ raid.raid_instanz }}">
+            {% endfor %}
+        </datalist>
+
+        <label for="boss_name">Boss-Name:</label>
+        <input list="boss_namen" id="boss_name" name="boss_name" value="{{ item.boss_name }}" required>
+        <datalist id="boss_namen">
+            {% for boss in boss_namen %}
+                <option value="{{ boss.boss_name }}">
+            {% endfor %}
+        </datalist>
+
+        <label for="ruestungstyp">Item-Kategorie:</label>
+        <select name="ruestungstyp" id="ruestungstyp">
+            {% set kategorien = {
+                "Rüstung": ["Stoff", "Leder", "Kette", "Platte"],
+                "Waffen": ["Einhand", "Zweihand", "Schildhand", "Schusswaffe", "Zauberstab", "Wurfwaffe"],
+                "Schmuck": ["Ring", "Hals", "Schmuckstück", "Relikt", "Umhang"],
+                "Sonstiges": ["Questgegenstand", "Rezept", "Reittier", "Sonstiges"]
+            } %}
+            {% for gruppe, typen in kategorien.items() %}
+                <optgroup label="{{ gruppe }}">
+                    {% for typ in typen %}
+                        <option value="{{ typ }}" {% if item.ruestungstyp == typ %}selected{% endif %}>{{ typ }}</option>
+                    {% endfor %}
+                </optgroup>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Änderungen speichern</button>
+    </form>
+{% endblock %}

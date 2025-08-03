@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Spieler hinzufügen{% endblock %}
+
+{% block content %}
+    <h1>Neuen Spieler anlegen</h1>
+    <form method="post">
+        <label for="charakter_name">Charaktername:</label>
+        <input type="text" id="charakter_name" name="charakter_name" required>
+
+        <label for="klasse">Klasse:</label>
+        <select name="klasse" id="klasse" required>
+            <option value="">-- Klasse wählen --</option>
+            <option value="Druide">Druide</option>
+            <option value="Hexenmeister">Hexenmeister</option>
+            <option value="Jäger">Jäger</option>
+            <option value="Krieger">Krieger</option>
+            <option value="Magier">Magier</option>
+            <option value="Paladin">Paladin</option>
+            <option value="Priester">Priester</option>
+            <option value="Schamane">Schamane</option>
+            <option value="Schurke">Schurke</option>
+        </select>
+
+        <label>Mögliche Rollen (mindestens eine auswählen):</label>
+        <div style="margin-top: 5px;">
+            <input type="checkbox" id="rolle_tank" name="rollen" value="Tank">
+            <label for="rolle_tank">Tank</label>
+        </div>
+        <div>
+            <input type="checkbox" id="rolle_heal" name="rollen" value="Heal">
+            <label for="rolle_heal">Heal</label>
+        </div>
+        <div>
+            <input type="checkbox" id="rolle_dps" name="rollen" value="DPS">
+            <label for="rolle_dps">DPS</label>
+        </div>
+
+        <button type="submit" style="margin-top: 20px;">Spieler speichern</button>
+    </form>
+{% endblock %}

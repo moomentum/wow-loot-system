@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+{% block title %}Mein Profil{% endblock %}
+{% block content %}
+    <h1>Mein Profil</h1>
+    <div class="profile-header">
+        <div class="char-selector">
+            <label for="charakter_wahl">Wähle einen Charakter:</label>
+            <select id="charakter_wahl">
+                <option value="">-- Bitte wählen --</option>
+                {% for char in charaktere %}
+                    <option value="{{ char.id }}" data-klasse="{{ char.klasse }}">{{ char.charakter_name }} ({{ char.klasse }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="char-actions">
+            <a href="{{ url_for('meine_charaktere') }}" class="button btn-yellow">Charaktere verwalten</a>
+        </div>
+    </div>
+    <hr>
+
+    <div id="charakter-details" style="display: none;">
+        <div class="profile-grid">
+            <div id="punkte-liste">
+                </div>
+            <div id="wishlist-management">
+                <h3>Wishlist (max. 6 Items)</h3>
+                <div id="wishlist-slots">
+                    </div>
+                <div id="wishlist-add-item">
+                    <h4>Item zur Wishlist hinzufügen</h4>
+                    <input type="text" id="item-search" placeholder="Item-Namen suchen...">
+                    <div id="search-results"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <p id="initial-prompt">Bitte wähle oben einen Charakter aus, um seine Details zu sehen.</p>
+
+    <style>
+        .profile-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+        #wishlist-slots .slot { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #ddd; }
+        #wishlist-slots .slot .item-name { flex-grow: 1; }
+        #wishlist-slots .slot .controls button { font-size: 12px; padding: 3px 6px; margin-left: 5px; }
+        #search-results .result-item { padding: 8px; cursor: pointer; }
+        #search-results .result-item:hover { background-color: #eee; }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const charakterSelect = document.getElementById('charakter_wahl');
+            const detailsContainer = document.getElementById('charakter-details');
+            const initialPrompt = document.getElementById('initial-prompt');
+            
+            let selectedCharId = null;
+            let selectedCharKlasse = null;
+
+            charakterSelect.addEventListener('change', function() {
+                selectedCharId = this.value;
+                const selectedOption = this.options[this.selectedIndex];
+                selectedCharKlasse = selectedOption.getAttribute('data-klasse');
+                
+                if (selectedCharId) {
+                    detailsContainer.style.display = 'block';
+                    initialPrompt.style.display = 'none';
+                    loadPunkte();
+                    loadWishlist();
+                } else {
+                    detailsContainer.style.display = 'none';
+                    initialPrompt.style.display = 'block';
+                }
+            });
+
+            // --- Punkte laden ---
+            function loadPunkte() {
+                const punkteContainer = document.getElementById('punkte-liste');
+                punkteContainer.innerHTML = '<p>Lade Loot-Punkte...</p>';
+                fetch(`/api/charakter/${selectedCharId}/punkte`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let tableHtml = '<h3>Loot-Punkte</h3>';
+                        if (data.length === 0) {
+                            tableHtml += '<p>Dieser Charakter hat noch keine Punkte gesammelt.</p>';
+                        } else {
+                            tableHtml += '<table><thead><tr><th>Item</th><th>Punkte</th></tr></thead><tbody>';
+                            data.forEach(p => { tableHtml += `<tr><td>${p.item_name}</td><td>${p.punkte}</td></tr>`; });
+                            tableHtml += '</tbody></table>';
+                        }
+                        punkteContainer.innerHTML = tableHtml;
+                    });
+            }
+
+            // --- Wishlist laden & verwalten ---
+            const wishlistSlotsContainer = document.getElementById('wishlist-slots');
+            const itemSearchInput = document.getElementById('item-search');
+            const searchResultsContainer = document.getElementById('search-results');
+
+            function loadWishlist() {
+                wishlistSlotsContainer.innerHTML = '<p>Lade Wishlist...</p>';
+                fetch(`/api/charakter/${selectedCharId}/wishlist`)
+                    .then(response => response.json())
+                    .then(wishlist => {
+                        renderWishlist(wishlist);
+                    });
+            }
+            
+            function renderWishlist(wishlist) {
+                wishlistSlotsContainer.innerHTML = '';
+                for (let i = 1; i <= 6; i++) {
+                    const item = wishlist.find(w => w.prioritaet === i);
+                    const slot = document.createElement('div');
+                    slot.classList.add('slot');
+                    if (item) {
+                        slot.innerHTML = `
+                            <span class="prio-number">${i}.</span>
+                            <span class="item-name">${item.item_name}</span>
+                            <span class="controls">
+                                ${i > 1 ? `<button onclick="moveWishlistItem(${item.item_id}, 'up')">▲</button>` : ''}
+                                ${i < wishlist.length ? `<button onclick="moveWishlistItem(${item.item_id}, 'down')">▼</button>` : ''}
+                                <button onclick="removeWishlistItem(${item.item_id})" class="btn-red">X</button>
+                            </span>
+                        `;
+                    } else {
+                        slot.innerHTML = `<span class="prio-number">${i}.</span> <span style="color:#888;">Leerer Slot</span>`;
+                    }
+                    wishlistSlotsContainer.appendChild(slot);
+                }
+            }
+
+            // --- Item-Suche ---
+            itemSearchInput.addEventListener('keyup', function() {
+                const query = this.value;
+                if (query.length < 3) {
+                    searchResultsContainer.innerHTML = '';
+                    return;
+                }
+                fetch(`/api/items/search?q=${query}&klasse=${selectedCharKlasse}`)
+                    .then(response => response.json())
+                    .then(items => {
+                        searchResultsContainer.innerHTML = '';
+                        items.forEach(item => {
+                            const div = document.createElement('div');
+                            div.classList.add('result-item');
+                            div.textContent = `${item.item_name} (${item.boss_name}, ${item.raid_instanz})`;
+                            div.onclick = () => addWishlistItem(item.id);
+                            searchResultsContainer.appendChild(div);
+                        });
+                    });
+            });
+
+            // --- Wishlist Aktionen (global, damit onclick funktioniert) ---
+            window.addWishlistItem = function(itemId) {
+                fetch(`/api/charakter/${selectedCharId}/wishlist/add`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ item_id: itemId })
+                }).then(response => response.json()).then(data => {
+                    if (data.success) {
+                        loadWishlist();
+                        itemSearchInput.value = '';
+                        searchResultsContainer.innerHTML = '';
+                    } else { alert(data.error); }
+                });
+            }
+
+            window.removeWishlistItem = function(itemId) {
+                fetch(`/api/charakter/${selectedCharId}/wishlist/remove`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ item_id: itemId })
+                }).then(() => loadWishlist());
+            }
+
+            window.moveWishlistItem = function(itemId, direction) {
+                fetch(`/api/charakter/${selectedCharId}/wishlist/move`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ item_id: itemId, direction: direction })
+                }).then(() => loadWishlist());
+            }
+        });
+    </script>
+{% endblock %}

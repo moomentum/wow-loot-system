@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Dashboard für {{ raid['raid_instanz'] }}{% endblock %}
+{% block content %}
+    <h1>Dashboard für {{ raid['raid_instanz'] }} {% if raid.raid_titel %}- {{ raid.raid_titel }}{% endif %}</h1>
+    <hr>
+    <h2>Item Vergabe</h2>
+    <form action="{{ url_for('item_vergeben', raid_id=raid['id']) }}" method="post">
+        <label for="item_id">Wähle das gedroppte Item:</label>
+        <select name="item_id" id="item_id" required><option value="">-- Bitte Item wählen --</option>{% for item in item_liste %}<option value="{{ item['id'] }}">{{ item['item_name'] }} ({{ item['boss_name'] }})</option>{% endfor %}</select>
+        <label for="spieler_id">Vergebe an Spieler (Liste wird nach Item-Wahl gefüllt):</label>
+        <select name="spieler_id" id="spieler_id" required><option value="">-- Erst Item oben auswählen --</option></select>
+        <button type="submit">Item jetzt vergeben</button>
+    </form>
+    <hr>
+    <h2>Teilnehmerliste</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Charakter (Rolle)</th>
+                <th>Reservierte Items (Aktuelle Punkte)</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for anmeldung in anmeldungen %}
+            <tr>
+                <td>{{ anmeldung['charakter_name'] }} <strong>({{ anmeldung['rolle_angemeldet'] }})</strong></td>
+                <td>
+                    <ul>
+                    {% for item in anmeldung['reservierungen'] %}
+                        <li>{{ item['item_name'] }} <strong>({{ item['punkte'] }} Pkt.)</strong></li>
+                    {% else %}
+                        <li>Keine Items reserviert.</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <form action="{{ url_for('anmeldung_entfernen', anmeldung_id=anmeldung['anmeldung_id']) }}" method="post" onsubmit="return confirm('Soll der Spieler wirklich aus dem Raid entfernt werden? Eventuell erhaltene Punkte werden zurückgesetzt.');">
+                        <button type="submit" class="button" style="background-color: #d9534f;">Entfernen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const itemSelect = document.getElementById('item_id');
+            const spielerSelect = document.getElementById('spieler_id');
+            itemSelect.addEventListener('change', function() {
+                const selectedItemId = this.value; 
+                spielerSelect.innerHTML = '<option>Lade Spieler...</option>';
+                if (!selectedItemId) {
+                    spielerSelect.innerHTML = '<option value="">-- Erst Item oben auswählen --</option>';
+                    return;
+                }
+                fetch(`/api/raid/{{ raid['id'] }}/item/${selectedItemId}/reservierungen`)
+                    .then(response => response.json())
+                    .then(data => {
+                        spielerSelect.innerHTML = ''; 
+                        if (data.length === 0) {
+                            spielerSelect.innerHTML = '<option value="">-- Niemand hat dieses Item reserviert --</option>';
+                            return;
+                        }
+                        data.forEach(spieler => {
+                            const option = document.createElement('option');
+                            option.value = spieler.spieler_id;
+                            option.textContent = `${spieler.charakter_name} (${spieler.punkte} Punkte)`;
+                            spielerSelect.appendChild(option);
+                        });
+                    })
+            });
+        });
+    </script>
+{% endblock %}

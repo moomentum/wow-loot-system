@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Raid-Archiv{% endblock %}
+{% block content %}
+    <h1>Raid-Archiv</h1>
+    <p>Hier sind alle abgeschlossenen Raids aufgelistet.</p>
+    <table>
+        <thead>
+            <tr>
+                <th>Raid</th>
+                <th>Datum</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for raid in raid_liste %}
+            <tr>
+                <td>
+                    <strong>{{ raid.raid_instanz }}</strong>
+                    {% if raid.raid_titel %}<br><small>{{ raid.raid_titel }}</small>{% endif %}
+                </td>
+                <td>{{ raid.raid_datum }}</td>
+                <td><a href="{{ url_for('archiv_detail', raid_id=raid.id) }}" class="button">Details ansehen</a></td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3">Bisher wurden keine Raids abgeschlossen.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

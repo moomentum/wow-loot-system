@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %} - WoW Loot System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <a href="{{ url_for('raid_liste') }}">Raids</a>
+            
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('profil') }}">Mein Profil</a>
+                <a href="{{ url_for('meine_anmeldungen') }}">Meine Anmeldungen</a>
+                <a href="{{ url_for('punkte_uebersicht') }}">Punkte-Übersicht</a>
+                
+                {% if current_user.role == 'admin' %}
+                    <a href="{{ url_for('admin_charakter_liste') }}">Alle Charaktere</a>
+                    <a href="{{ url_for('admin_user_liste') }}">Benutzer</a>
+                    <a href="{{ url_for('item_liste') }}">Items</a>
+                    <a href="{{ url_for('log_liste') }}">Log-Buch</a>
+                    <a href="{{ url_for('archiv_liste') }}">Raid-Archiv</a>
+                    <a href="{{ url_for('dashboard') }}" style="color: #ff6b6b;">Dashboard</a>
+                {% endif %}
+                
+                <a href="{{ url_for('logout') }}" style="float: right;">Logout ({{ current_user.username }})</a>
+            {% else %}
+                <a href="{{ url_for('login') }}" style="float: right;">Login</a>
+                <a href="{{ url_for('register') }}" style="float: right;">Registrieren</a>
+            {% endif %}
+        </nav>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash {{ category }}">{{ message }}</div>
+                {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="content">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

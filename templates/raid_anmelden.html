@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+
+{% block title %}Anmeldung für {{ raid['raid_instanz'] }}{% endblock %}
+
+{% block content %}
+    <h1>Anmeldung für {{ raid['raid_instanz'] }} am {{ raid['raid_datum'] }}</h1>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="flash error">{{ messages[0] }}</div>
+        {% endif %}
+    {% endwith %}
+    <form method="post">
+        <div class="anmeldung-grid">
+            <div>
+                <label for="charakter_id">Wähle deinen Charakter:</label>
+                <select id="charakter_id" name="spieler_id" required>
+                    <option value="">-- Charakter wählen --</option>
+                    {% for spieler in spieler_liste %}
+                        <option value="{{ spieler['id'] }}" data-rollen="{{ spieler['rollen'] }}" {% if spieler['id'] in angemeldete_spieler_ids %}disabled{% endif %}>
+                            {{ spieler['charakter_name'] }} {% if spieler['id'] in angemeldete_spieler_ids %}(bereits angemeldet){% endif %}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="rolle_angemeldet">Rolle für diesen Raid:</label>
+                <select id="rolle_angemeldet" name="rolle_angemeldet" required>
+                    <option value="">-- Erst Charakter wählen --</option>
+                </select>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div id="wishlist-helfer" style="display: none;">
+            <h3>Wishlist-Helfer für diesen Raid</h3>
+            <div id="wishlist-analyse"></div>
+            <button type="button" id="autofill-btn" class="button btn-blue">Reservierungen aus Wishlist füllen</button>
+        </div>
+        
+        <hr>
+
+        <h3>Reserviere deine Items</h3>
+        <div id="reservierungs-slots">
+            </div>
+
+        <button type="submit" style="margin-top: 20px;">Anmeldung abschicken</button>
+    </form>
+    
+    <style> .anmeldung-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; } </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const charakterSelect = document.getElementById('charakter_id');
+            const rolleSelect = document.getElementById('rolle_angemeldet');
+            const wishlistHelfer = document.getElementById('wishlist-helfer');
+            const wishlistAnalyse = document.getElementById('wishlist-analyse');
+            const reservierungsSlots = document.getElementById('reservierungs-slots');
+            const autofillBtn = document.getElementById('autofill-btn');
+
+            const reservationSlotsConfig = {{ reservation_slots | tojson }};
+            const itemListe = {{ item_liste | tojson }};
+            let anzahlSlots = 0;
+            let wishlistData = [];
+
+            charakterSelect.addEventListener('change', function() {
+                rolleSelect.innerHTML = '<option value="">-- Rolle wählen --</option>';
+                const selectedOption = this.options[this.selectedIndex];
+                const rollenData = selectedOption.getAttribute('data-rollen');
+                if (rollenData) {
+                    rollenData.split(',').forEach(rolle => {
+                        const option = document.createElement('option');
+                        option.value = rolle.trim();
+                        option.textContent = rolle.trim();
+                        rolleSelect.appendChild(option);
+                    });
+                }
+                wishlistHelfer.style.display = 'none';
+                reservierungsSlots.innerHTML = '';
+            });
+
+            rolleSelect.addEventListener('change', function() {
+                const rolle = this.value;
+                if (!rolle) {
+                    wishlistHelfer.style.display = 'none';
+                    reservierungsSlots.innerHTML = '';
+                    return;
+                }
+                anzahlSlots = reservationSlotsConfig[rolle] || reservationSlotsConfig['default'];
+                generateReservationSlots(anzahlSlots);
+                loadWishlistHelper();
+            });
+
+            function loadWishlistHelper() {
+                const charakterId = charakterSelect.value;
+                if (!charakterId) return;
+
+                wishlistHelfer.style.display = 'block';
+                wishlistAnalyse.innerHTML = '<p>Analysiere Wishlist und Konkurrenz...</p>';
+                
+                fetch(`/api/raid/{{ raid.id }}/wishlist-helper/${charakterId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        wishlistData = data;
+                        renderWishlistHelper(data);
+                    });
+            }
+
+            function renderWishlistHelper(data) {
+                let html = '<table><thead><tr><th>Prio</th><th>Item</th><th>Deine Pkt.</th><th>Anz. Konkurrenten</th><th>Max. Pkt. Konkurrenz</th><th>Gewinnchance</th></tr></thead><tbody>';
+                if (data.length === 0) {
+                    html += '<tr><td colspan="6">Keine Items von deiner Wishlist in diesem Raid verfügbar.</td></tr>';
+                } else {
+                    data.forEach(item => {
+                        let chance = '';
+                        let konkurrenzPkt = item.konkurrenz_punkte === null ? '-' : item.konkurrenz_punkte;
+
+                        if (item.konkurrenz_anzahl === 0) {
+                            chance = '<span style="color:green;">✅ Beste Chance</span>';
+                        } else if (item.deine_punkte > item.konkurrenz_punkte) {
+                            chance = '<span style="color:darkgreen;">🟢 Top-Priorität</span>';
+                        } else if (item.deine_punkte === item.konkurrenz_punkte) {
+                            chance = '<span style="color:orange;">🟡 Gleichstand (/roll)</span>';
+                        } else {
+                            chance = `<span style="color:red;">🔴 Geringe Chance</span>`;
+                        }
+                        
+                        html += `<tr><td>${item.prioritaet}</td><td>${item.item_name}</td><td>${item.deine_punkte || 0}</td><td>${item.konkurrenz_anzahl}</td><td>${konkurrenzPkt}</td><td>${chance}</td></tr>`;
+                    });
+                }
+                html += '</tbody></table>';
+                wishlistAnalyse.innerHTML = html;
+            }
+
+            function generateReservationSlots(num) {
+                reservierungsSlots.innerHTML = '';
+                for (let i = 1; i <= num; i++) {
+                    let label = document.createElement('label');
+                    label.textContent = `Item-Reservierung ${i}:`;
+                    let select = document.createElement('select');
+                    select.name = 'item_ids';
+                    select.innerHTML = '<option value="">-- Kein Item --</option>';
+                    itemListe.forEach(item => {
+                        select.innerHTML += `<option value="${item.id}">${item.item_name} (${item.boss_name})</option>`;
+                    });
+                    reservierungsSlots.appendChild(label);
+                    reservierungsSlots.appendChild(select);
+                }
+            }
+
+            autofillBtn.addEventListener('click', function() {
+                const selects = reservierungsSlots.querySelectorAll('select');
+                for(let i = 0; i < selects.length; i++) {
+                    if (wishlistData[i]) {
+                        selects[i].value = wishlistData[i].item_id;
+                    } else {
+                        selects[i].value = '';
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

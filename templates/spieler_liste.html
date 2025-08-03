@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Spielerliste{% endblock %}
+
+{% block content %}
+    <h1>Alle Spieler</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Charaktername</th>
+                <th>Klasse</th>
+                <th>Mögliche Rollen</th>
+                <th colspan="2">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for spieler in spieler_liste %}
+            <tr>
+                <td>{{ spieler['charakter_name'] }}</td>
+                <td>{{ spieler['klasse'] }}</td>
+                <td>{{ spieler['rollen'] }}</td>
+                <td>
+                    <a href="{{ url_for('spieler_bearbeiten', spieler_id=spieler['id']) }}" class="button" style="background-color: #f0ad4e;">Bearbeiten</a>
+                </td>
+                <td>
+                    <form action="{{ url_for('spieler_loeschen', spieler_id=spieler['id']) }}" method="post" onsubmit="return confirm('Bist du sicher, dass du diesen Spieler endgültig löschen willst? Alle seine Loot-Punkte gehen verloren!');">
+                        <button type="submit" style="background-color: #d9534f;">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{{ url_for('spieler_hinzufuegen') }}" class="button">Neuen Spieler hinzufügen</a>
+{% endblock %}

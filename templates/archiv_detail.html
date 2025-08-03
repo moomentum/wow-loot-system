@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Archiv: {{ raid.raid_instanz }}{% endblock %}
+{% block content %}
+    <h1>Archiv: {{ raid.raid_instanz }} {% if raid.raid_titel %}- {{ raid.raid_titel }}{% endif %}</h1>
+    <p><strong>Datum:</strong> {{ raid.raid_datum }} um {{ raid.raid_zeit }} Uhr</p>
+    <hr>
+
+    <div class="profile-grid">
+        <div>
+            <h2>Teilnehmerliste</h2>
+            <table>
+                <thead><tr><th>Charakter</th><th>Rolle</th></tr></thead>
+                <tbody>
+                    {% for teilnehmer in teilnehmerliste %}
+                    <tr>
+                        <td>{{ teilnehmer.charakter_name }}</td>
+                        <td>{{ teilnehmer.rolle_angemeldet }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="2">Keine Teilnehmerdaten gefunden.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div>
+            <h2>Vergebene Items</h2>
+            <table>
+                <thead><tr><th>Zeit</th><th>Item & Empfänger</th></tr></thead>
+                <tbody>
+                    {% for log in loot_logs %}
+                    <tr>
+                        <td>{{ log.zeitstempel.split(' ')[1][:5] }} Uhr</td>
+                        <td>{{ log.details }}</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="2">In diesem Raid wurden keine Items vergeben.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

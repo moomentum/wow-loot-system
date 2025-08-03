@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Raid-Übersicht{% endblock %}
+{% block content %}
+    <h1>Aktive Raids</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Raid</th>
+                <th>Datum & Zeit</th>
+                <th>Status</th>
+                <th colspan="2">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for raid in raid_liste %}
+            <tr>
+                <td>
+                    <strong>{{ raid['raid_instanz'] }}</strong>
+                    {% if raid['raid_titel'] %}<br><small>{{ raid['raid_titel'] }}</small>{% endif %}
+                </td>
+                <td>{{ raid['raid_datum'] }}<br>{{ raid['raid_zeit'] }} Uhr</td>
+                <td>{{ raid['status'] }}</td>
+                <td>
+                    {% if raid.status == 'Offen' %}
+                        <a href="{{ url_for('raid_anmelden', raid_id=raid['id']) }}" class="button">Anmelden</a>
+                        <form action="{{ url_for('raid_toggle_lock', raid_id=raid['id']) }}" method="post" onsubmit="return confirm('Soll der Raid wirklich gesperrt werden? Danach sind keine Anmeldungen mehr möglich.');" style="margin-top: 5px;">
+                            <button type="submit" class="button btn-green">Anmeldung sperren</button>
+                        </form>
+                    {% elif raid.status == 'Gestartet' %}
+                        <a href="{{ url_for('raid_dashboard', raid_id=raid['id']) }}" class="button">Verwalten</a>
+                        <form action="{{ url_for('raid_toggle_lock', raid_id=raid['id']) }}" method="post" style="margin-top: 5px;">
+                            <button type="submit" class="button btn-yellow">Anmeldung öffnen</button>
+                        </form>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if raid.status == 'Gestartet' %}
+                        <form action="{{ url_for('raid_abschliessen', raid_id=raid['id']) }}" method="post" onsubmit="return confirm('Soll der Raid wirklich abgeschlossen werden? Er wird danach archiviert.');" style="display: inline-block;">
+                            <button type="submit" class="button btn-blue">Abschließen</button>
+                        </form>
+                    {% endif %}
+                    <a href="{{ url_for('raid_bearbeiten', raid_id=raid['id']) }}" class="button btn-yellow" style="margin-top: 5px;">Bearbeiten</a>
+                    <form action="{{ url_for('raid_loeschen', raid_id=raid['id']) }}" method="post" onsubmit="return confirm('Bist du sicher, dass du diesen Raid endgültig löschen willst?');" style="margin-top: 5px;">
+                        <button type="submit" class="button btn-red">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5">Keine aktiven Raids gefunden.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{{ url_for('raid_erstellen') }}" class="button">Neuen Raid erstellen</a>
+{% endblock %}

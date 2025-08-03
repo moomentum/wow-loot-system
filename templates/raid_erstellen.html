@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Raid erstellen{% endblock %}
+
+{% block content %}
+    <h1>Neuen Raid erstellen</h1>
+    <form method="post">
+        <label for="raid_instanz">Raid-Instanz auswählen:</label>
+        <select name="raid_instanz" id="raid_instanz" required>
+            <option value="">-- Instanz wählen --</option>
+            {% for instanz in instanzen %}
+                <option value="{{ instanz['raid_instanz'] }}">{{ instanz['raid_instanz'] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="raid_titel">Titel (optional, z.B. "Mainraid", "Twinkgruppe"):</label>
+        <input type="text" id="raid_titel" name="raid_titel">
+
+        <label for="raid_datum">Datum:</label>
+        <input type="date" id="raid_datum" name="raid_datum" required>
+
+        <label for="raid_zeit">Startzeit:</label>
+        <input type="time" id="raid_zeit" name="raid_zeit" required>
+
+        <button type="submit">Raid erstellen</button>
+    </form>
+{% endblock %}

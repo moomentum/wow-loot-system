@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Itemliste{% endblock %}
+
+{% block content %}
+    <h1>Alle Items</h1>
+
+    <a href="{{ url_for('item_hinzufuegen') }}" class="button">Neues Item hinzufügen</a>
+
+    <input type="text" id="searchInput" placeholder="Suche nach Item, Boss oder Raid..." style="width: 100%; padding: 10px; margin-top: 20px; margin-bottom: 20px; box-sizing: border-box;">
+
+    <table id="itemTabelle">
+        <thead>
+            <tr>
+                <th>Item-Name</th>
+                <th>Boss</th>
+                <th>Raid-Instanz</th>
+                <th colspan="2">Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in item_liste %}
+            <tr>
+                <td>{{ item['item_name'] }}</td>
+                <td>{{ item['boss_name'] }}</td>
+                <td>{{ item['raid_instanz'] }}</td>
+                <td>
+                    <a href="{{ url_for('item_bearbeiten', item_id=item['id']) }}" class="button btn-yellow">Bearbeiten</a>
+                </td>
+                <td>
+                    <form action="{{ url_for('item_loeschen', item_id=item['id']) }}" method="post" onsubmit="return confirm('Bist du sicher, dass du dieses Item endgültig löschen willst?');">
+                        <button type="submit" class="button btn-red">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const table = document.getElementById('itemTabelle');
+            const tableRows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            searchInput.addEventListener('keyup', function() {
+                const filter = searchInput.value.toLowerCase();
+
+                for (let i = 0; i < tableRows.length; i++) {
+                    let row = tableRows[i];
+                    let rowText = row.textContent || row.innerText;
+
+                    if (rowText.toLowerCase().indexOf(filter) > -1) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

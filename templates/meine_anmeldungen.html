@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Meine Anmeldungen{% endblock %}
+{% block content %}
+    <h1>Meine aktiven Raid-Anmeldungen</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Charakter</th>
+                <th>Raid</th>
+                <th>Datum & Zeit</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for anmeldung in anmeldungen %}
+            <tr>
+                <td>{{ anmeldung.charakter_name }} ({{ anmeldung.rolle_angemeldet }})</td>
+                <td>{{ anmeldung.raid_instanz }} {% if anmeldung.raid_titel %}- {{ anmeldung.raid_titel }}{% endif %}</td>
+                <td>{{ anmeldung.raid_datum }} um {{ anmeldung.raid_zeit }} Uhr</td>
+                <td>
+                    {% if anmeldung.status == 'Offen' %}
+                        <form action="{{ url_for('anmeldung_stornieren', anmeldung_id=anmeldung.anmeldung_id) }}" method="post" onsubmit="return confirm('Möchtest du die Anmeldung wirklich stornieren?');">
+                            <button type="submit" class="button btn-red">Stornieren</button>
+                        </form>
+                    {% else %}
+                        <span style="color: #888;">Raid gestartet</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4">Du bist für keine aktiven Raids angemeldet.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

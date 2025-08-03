@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Registrieren{% endblock %}
+{% block content %}
+    <h1>Neuen Account erstellen</h1>
+    <form method="post">
+        <label for="username">Benutzername:</label>
+        <input type="text" id="username" name="username" required>
+        <label for="password">Passwort:</label>
+        <input type="password" id="password" name="password" required>
+        <button type="submit">Registrieren</button>
+    </form>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Loot-Punkte Übersicht{% endblock %}
+
+{% block content %}
+    <h1>Loot-Punkte Übersicht</h1>
+    
+    <input type="text" id="searchInput" placeholder="Suche nach Item oder Charakter..." style="width: 100%; padding: 10px; margin-bottom: 20px; box-sizing: border-box;">
+
+    <table id="punkteTabelle">
+        <thead>
+            <tr>
+                <th>
+                    <a href="{{ url_for('punkte_uebersicht', sort='item_name', order=next_orders['item_name']) }}">
+                        Item
+                        {% if current_sort == 'item_name' %}{% if current_order == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ url_for('punkte_uebersicht', sort='charakter_name', order=next_orders['charakter_name']) }}">
+                        Charakter
+                        {% if current_sort == 'charakter_name' %}{% if current_order == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="{{ url_for('punkte_uebersicht', sort='punkte', order=next_orders['punkte']) }}">
+                        Punkte
+                        {% if current_sort == 'punkte' %}{% if current_order == 'asc' %}▲{% else %}▼{% endif %}{% endif %}
+                    </a>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eintrag in punkte_liste %}
+            <tr>
+                <td>{{ eintrag['item_name'] }}</td>
+                <td>{{ eintrag['charakter_name'] }}</td>
+                <td>{{ eintrag['punkte'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            const table = document.getElementById('punkteTabelle');
+            const tableRows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+            searchInput.addEventListener('keyup', function() {
+                const filter = searchInput.value.toLowerCase();
+
+                for (let i = 0; i < tableRows.length; i++) {
+                    let row = tableRows[i];
+                    // Nimm den Text aus allen Zellen der Zeile
+                    let rowText = row.textContent || row.innerText;
+
+                    // Vergleiche den Text mit der Suche und zeige/verstecke die Zeile
+                    if (rowText.toLowerCase().indexOf(filter) > -1) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

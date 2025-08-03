@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Plündermeister Dashboard{% endblock %}
+
+{% block content %}
+    <h1>Plündermeister Dashboard</h1>
+    <hr>
+    <h2>Raid zur Verwaltung auswählen:</h2>
+    <ul>
+        {% for raid in raid_liste %}
+            <li>
+                <a href="{{ url_for('raid_dashboard', raid_id=raid['id']) }}">
+                    {{ raid['raid_instanz'] }} {% if raid['raid_titel'] %}- {{ raid['raid_titel'] }}{% endif %} ({{ raid['raid_datum'] }})
+                </a>
+            </li>
+        {% else %}
+            <li>Keine aktiven Raids gefunden.</li>
+        {% endfor %}
+    </ul>
+    <hr>
+    <h2>Loot-Punkte manuell anpassen</h2>
+    <p>Für Korrekturen oder um Strafen zu verhängen.</p>
+    <form action="{{ url_for('punkte_anpassen') }}" method="post">
+        <label for="charakter_select">Spieler auswählen:</label>
+        <select name="spieler_id" id="charakter_select" required>
+            <option value="">-- Charakter wählen --</option>
+            {% for spieler in spieler_liste %}
+                <option value="{{ spieler['id'] }}">{{ spieler['charakter_name'] }}</option>
+            {% endfor %}
+        </select>
+
+        <label for="item_select">Item auswählen:</label>
+        <select name="item_id" id="item_select" required>
+            <option value="">-- Erst Charakter auswählen --</option>
+        </select>
+
+        <label for="punkte">Neuer Punktestand:</label>
+        <input type="number" name="punkte" id="punkte" required>
+
+        <label for="begruendung">Begründung (Pflichtfeld):</label>
+        <textarea name="begruendung" id="begruendung" required></textarea>
+
+        <button type="submit">Punkte jetzt anpassen</button>
+    </form>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const charakterSelect = document.getElementById('charakter_select');
+            const itemSelect = document.getElementById('item_select');
+
+            charakterSelect.addEventListener('change', function() {
+                const charakterId = this.value;
+                itemSelect.innerHTML = '<option>Lade Items...</option>';
+
+                if (!charakterId) {
+                    itemSelect.innerHTML = '<option value="">-- Erst Charakter auswählen --</option>';
+                    return;
+                }
+
+                // Rufe die neue API-Route auf, um alle Items mit den Punkten des Charakters zu holen
+                fetch(`/api/charakter/${charakterId}/all-items-with-points`)
+                    .then(response => response.json())
+                    .then(items => {
+                        itemSelect.innerHTML = '<option value="">-- Item wählen --</option>';
+                        items.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.id;
+                            // Zeige den Punktestand direkt im Dropdown-Text an
+                            option.textContent = `${item.item_name} (${item.punkte} Punkte)`;
+                            itemSelect.appendChild(option);
+                        });
+                    });
+            });
+        });
+    </script>
+{% endblock %}

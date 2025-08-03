@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Item hinzufügen{% endblock %}
+{% block content %}
+    <h1>Neues Item anlegen</h1>
+    <form method="post">
+        <label for="item_name">Item-Name:</label>
+        <input type="text" id="item_name" name="item_name" required>
+
+        <label for="raid_instanz">Raid-Instanz:</label>
+        <input list="raid_namen" id="raid_instanz" name="raid_instanz" required>
+        <datalist id="raid_namen">
+            {% for raid in raid_instanzen %}
+                <option value="{{ raid.raid_instanz }}">
+            {% endfor %}
+        </datalist>
+
+        <label for="boss_name">Boss-Name:</label>
+        <input list="boss_namen" id="boss_name" name="boss_name" required>
+        <datalist id="boss_namen">
+            {% for boss in boss_namen %}
+                <option value="{{ boss.boss_name }}">
+            {% endfor %}
+        </datalist>
+
+        <label for="ruestungstyp">Item-Kategorie:</label>
+        <select name="ruestungstyp" id="ruestungstyp">
+            <optgroup label="Rüstung">
+                <option value="Stoff">Stoff</option>
+                <option value="Leder">Leder</option>
+                <option value="Kette">Kette</option>
+                <option value="Platte">Platte</option>
+            </optgroup>
+            <optgroup label="Waffen">
+                <option value="Einhand">Einhand</option>
+                <option value="Zweihand">Zweihand</option>
+                <option value="Schildhand">Schildhand</option>
+                <option value="Schusswaffe">Schusswaffe</option>
+                <option value="Zauberstab">Zauberstab</option>
+                <option value="Wurfwaffe">Wurfwaffe</option>
+            </optgroup>
+            <optgroup label="Schmuck">
+                <option value="Ring">Ring</option>
+                <option value="Hals">Hals</option>
+                <option value="Schmuckstück">Schmuckstück</option>
+                <option value="Umhang">Umhang</option>
+                <option value="Relikt">Relikt</option>
+            </optgroup>
+            <optgroup label="Sonstiges">
+                <option value="Questgegenstand">Questgegenstand</option>
+                <option value="Rezept">Rezept</option>
+                <option value="Sonstiges">Sonstiges</option>
+                <option value="Reittier">Reittier</option>
+            </optgroup>
+        </select>
+
+        <button type="submit">Item speichern</button>
+    </form>
+{% endblock %}

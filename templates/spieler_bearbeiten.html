@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Spieler bearbeiten{% endblock %}
+
+{% block content %}
+    <h1>Spieler bearbeiten</h1>
+    <form method="post">
+        <label for="charakter_name">Charaktername:</label>
+        <input type="text" id="charakter_name" name="charakter_name" value="{{ spieler['charakter_name'] }}" required>
+
+        <label for="klasse">Klasse:</label>
+        <select name="klasse" id="klasse" required>
+            {% set klassen = ["Druide", "Hexenmeister", "Jäger", "Krieger", "Magier", "Paladin", "Priester", "Schamane", "Schurke"] %}
+            {% for klasse in klassen %}
+                <option value="{{ klasse }}" {% if klasse == spieler['klasse'] %}selected{% endif %}>{{ klasse }}</option>
+            {% endfor %}
+        </select>
+
+        <label>Mögliche Rollen (mindestens eine auswählen):</label>
+        {% set spieler_rollen = spieler['rollen'].split(',') %}
+        <div style="margin-top: 5px;">
+            <input type="checkbox" id="rolle_tank" name="rollen" value="Tank" {% if 'Tank' in spieler_rollen %}checked{% endif %}>
+            <label for="rolle_tank">Tank</label>
+        </div>
+        <div>
+            <input type="checkbox" id="rolle_heal" name="rollen" value="Heal" {% if 'Heal' in spieler_rollen %}checked{% endif %}>
+            <label for="rolle_heal">Heal</label>
+        </div>
+        <div>
+            <input type="checkbox" id="rolle_dps" name="rollen" value="DPS" {% if 'DPS' in spieler_rollen %}checked{% endif %}>
+            <label for="rolle_dps">DPS</label>
+        </div>
+
+        <button type="submit" style="margin-top: 20px;">Änderungen speichern</button>
+    </form>
+{% endblock %}

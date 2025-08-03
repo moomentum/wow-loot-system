@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Admin: Alle Charaktere verwalten{% endblock %}
+
+{% block content %}
+    <h1>Admin: Alle Charaktere verwalten</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Charaktername</th>
+                <th>Besitzer (Account)</th>
+                <th>Klasse</th>
+                <th>Rollen</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for spieler in spieler_liste %}
+            <tr>
+                <td>{{ spieler['charakter_name'] }}</td>
+                <td>{{ spieler['username'] }}</td>
+                <td>{{ spieler['klasse'] }}</td>
+                <td>{{ spieler['rollen'] }}</td>
+                <td>
+                    <form action="{{ url_for('admin_charakter_loeschen', charakter_id=spieler['id']) }}" method="post" onsubmit="return confirm('Charakter von {{ spieler['username'] }} wirklich löschen?');">
+                        <button type="submit" style="background-color: #d9534f;">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

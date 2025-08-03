@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Aktions-Logbuch{% endblock %}
+
+{% block content %}
+    <h1>Aktions-Logbuch</h1>
+    <p>Hier werden alle wichtigen Aktionen im System protokolliert.</p>
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 20%;">Zeitstempel</th>
+                <th style="width: 20%;">Aktion</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in log_liste %}
+            <tr>
+                <td>{{ log['zeitstempel'] }}</td>
+                <td>{{ log['aktion'] }}</td>
+                <td>{{ log['details'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
